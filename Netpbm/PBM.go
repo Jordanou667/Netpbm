@@ -72,6 +72,8 @@ func ReadPBM(filename string) (*PBM, error) {
         magicNumber: magicNumber,
 	}
 	
+	pbm.SetMagicNumber("P4")
+
 	fmt.Printf("%+v\n", PBM{data, width, height, magicNumber})
 
 	return pbm, nil
@@ -89,17 +91,29 @@ func (pbm *PBM) Set(x, y int, value bool) {
 	pbm.data[y][x] = value
 }
 
-func (pbm *PBM) Save(filename string) error{
+func (pbm *PBM) Save(filename string) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	writer := bufio.NewWriter(file)
-	_, err = writer.WriteString("P2\n")
 
+	_, err = fmt.Fprintf(file, "magicNumber: %s\n", pbm.magicNumber)
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprintf(file, "Width: %d\n", pbm.width)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintf(file, "Height: %d\n", pbm.height)
+	if err != nil {
+		return err
+	}
 	return nil
 }
+
 
 func (pbm *PBM) Invert(){
 	for i := 0; i < pbm.height; i++ {
@@ -113,26 +127,34 @@ func (pbm *PBM) Invert(){
 	}
 }
 
+func (pbm *PBM) Flip() {
+    for _, height := range pbm.data {
+        for i, j := 0, len(height)-1; i < j; i, j = i+1, j-1 {
+            height[i], height[j] = height[j], height[i]
+        }
+    }
+}
+
+func (pbm *PBM) Flop(){
+    for i, j := 0, len(pbm.data)-1; i < j; i, j = i+1, j-1 {
+        pbm.data[i], pbm.data[j] = pbm.data[j], pbm.data[i]
+    }
+}
+
+func (pbm *PBM) SetMagicNumber(magicNumber string){
+    pbm.magicNumber = magicNumber
+}
+
 func main() {
     pbm, _ := ReadPBM("test.pbm")
     // (*PBM).Size(&PBM{})
     pbm.Save("save.pbm")
-	
+	fmt.Println("\n")
 
-	//if err != nil {
-	//fmt.Println("Error:", err)
-	//return
-	//}
+	pbm.Flip()
+	fmt.Println("Flip:", pbm.data)
+	fmt.Println("\n")
 
-	//width, height := pbm.Size()
-	//fmt.Printf("Image Size: %d x %d\n", width, height)
-
-	// Exemple d'utilisation des fonctions At et Set
-	//x, y := 10, 9
-	//fmt.Printf("Pixel at (%d, %d): %v\n", x, y, pbm.At(x, y))
-
-	//newValue := true
-	//pbm.Set(x, y, newValue)
-	//fmt.Printf("Pixel at (%d, %d) set to: %v\n", x, y, pbm.At(x, y))
-
+	pbm.Flop()
+	fmt.Println("Flop:", pbm.data)
 }
