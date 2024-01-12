@@ -72,7 +72,6 @@ func ReadPBM(filename string) (*PBM, error) {
         magicNumber: magicNumber,
 	}
 	
-	pbm.SetMagicNumber("P4")
 
 	fmt.Printf("%+v\n", PBM{data, width, height, magicNumber})
 
@@ -111,6 +110,19 @@ func (pbm *PBM) Save(filename string) error {
 	if err != nil {
 		return err
 	}
+	
+	fmt.Fprintf(file, "\n")
+
+	for i := 0; i < pbm.height; i++ {
+		for j := 0; j < pbm.width; j++ {
+			if pbm.data[i][j] {
+				fmt.Fprintf(file, "%s ", "1")
+			}else if !pbm.data[i][j] {
+				fmt.Fprintf(file, "%s ", "0")
+			}
+		}
+		fmt.Fprintf(file, "%v\n", "")
+	}
 	return nil
 }
 
@@ -141,20 +153,21 @@ func (pbm *PBM) Flop(){
     }
 }
 
-func (pbm *PBM) SetMagicNumber(magicNumber string){
-    pbm.magicNumber = magicNumber
-}
+// func (pbm *PBM) SetMagicNumber(magicNumber string){
+// 	fmt.Println(magicNumber)
+// }
 
-func main() {
-    pbm, _ := ReadPBM("test.pbm")
-    // (*PBM).Size(&PBM{})
-    pbm.Save("save.pbm")
-	fmt.Println("\n")
+// func main() {
+//     pbm, _ := ReadPBM("Dos_pbm/test.pbm")
+//     // (*PBM).Size(&PBM{})
+//     pbm.Save("Dos_pbm/save.pbm")
+// 	fmt.Println("\n")
 
-	pbm.Flip()
-	fmt.Println("Flip:", pbm.data)
-	fmt.Println("\n")
+// 	// pbm.SetMagicNumber("P4")
+// 	pbm.Flip()
+// 	fmt.Println("Flip:", pbm.data)
+// 	fmt.Println("\n")
 
-	pbm.Flop()
-	fmt.Println("Flop:", pbm.data)
-}
+// 	pbm.Flop()
+// 	fmt.Println("Flop:", pbm.data)
+// }
