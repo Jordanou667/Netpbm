@@ -1,4 +1,4 @@
-package main
+package Netpbm
 
 import (
 	"bufio"
@@ -44,8 +44,8 @@ func ReadPBM(filename string) (*PBM, error) {
 
     dimension = scanner.Text()
     res := strings.Split(dimension, " ")
-    height, _  := strconv.Atoi(res[1])
-    width, _  := strconv.Atoi(res[0])
+    height, _  := strconv.Atoi(res[0])
+    width, _  := strconv.Atoi(res[1])
 	
 	// Lecture des données binaires
 	data := make([][]bool, height)
@@ -110,8 +110,10 @@ func (pbm *PBM) Save(filename string) error {
 	if err != nil {
 		return err
 	}
-	
-	fmt.Fprintf(file, "\n")
+
+	if pbm.magicNumber != "P1" {
+		return fmt.Errorf("Not a Portable Bitmap file: bad magic number %s", pbm.magicNumber)
+	}
 
 	for i := 0; i < pbm.height; i++ {
 		for j := 0; j < pbm.width; j++ {
@@ -139,7 +141,7 @@ func (pbm *PBM) Invert(){
 	}
 }
 
-func (pbm *PBM) Flip() {
+func (pbm *PBM) Flop() {
     for _, height := range pbm.data {
         for i, j := 0, len(height)-1; i < j; i, j = i+1, j-1 {
             height[i], height[j] = height[j], height[i]
@@ -147,26 +149,26 @@ func (pbm *PBM) Flip() {
     }
 }
 
-func (pbm *PBM) Flop(){
+func (pbm *PBM) Flip(){
     for i, j := 0, len(pbm.data)-1; i < j; i, j = i+1, j-1 {
         pbm.data[i], pbm.data[j] = pbm.data[j], pbm.data[i]
     }
 }
 
-// func (pbm *PBM) SetMagicNumber(magicNumber string){
-// 	fmt.Println(magicNumber)
-// }
+func (pbm *PBM) SetMagicNumber(magicNumber string){
+	pbm.magicNumber = magicNumber
+}
 
 // func main() {
-//     pbm, _ := ReadPBM("Dos_pbm/test.pbm")
+//     pbm, _ := ReadPBM("testImages/pbm/testP1.pbm")
 //     // (*PBM).Size(&PBM{})
-//     pbm.Save("Dos_pbm/save.pbm")
-// 	fmt.Println("\n")
+//     pbm.Save("testImages/pbm/save.pbm")
+// 	// fmt.Println("\n")
 
 // 	// pbm.SetMagicNumber("P4")
 // 	pbm.Flip()
 // 	fmt.Println("Flip:", pbm.data)
-// 	fmt.Println("\n")
+// 	// fmt.Println("\n")
 
 // 	pbm.Flop()
 // 	fmt.Println("Flop:", pbm.data)

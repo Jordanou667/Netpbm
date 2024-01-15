@@ -1,4 +1,4 @@
-package main
+package Netpbm
 
 import (
     "bufio"
@@ -46,7 +46,7 @@ func ReadPGM(filename string) (*PGM, error) {
 
     // Lecture du max (non déclaré dans votre code initial)
     scanner.Scan()
-    max, _ := strconv.Atoi(scanner.Text())
+    maxValue, _ := strconv.Atoi(scanner.Text())
 
     // Lecture des données binaires
     data := make([][]uint8, height)
@@ -69,10 +69,10 @@ func ReadPGM(filename string) (*PGM, error) {
         width:       width,
         height:      height,
         magicNumber: magicNumber,
-        max:         max,
+        max:         maxValue,
     }
 
-    fmt.Printf("%+v\n", PGM{data, width, height, magicNumber, max})
+    fmt.Printf("%+v\n", PGM{data, width, height, magicNumber, maxValue})
 
     return pgm, nil
 }
@@ -139,7 +139,7 @@ func (pgm *PGM) Invert() {
     }
 }
 
-func (pgm *PGM) Flip() {
+func (pgm *PGM) Flop() {
     for _, height := range pgm.data {
         for i, j := 0, len(height)-1; i < j; i, j = i+1, j-1 {
             height[i], height[j] = height[j], height[i]
@@ -147,10 +147,14 @@ func (pgm *PGM) Flip() {
     }
 }
 
-func (pgm *PGM) Flop(){
+func (pgm *PGM) Flip(){
     for i, j := 0, len(pgm.data)-1; i < j; i, j = i+1, j-1 {
         pgm.data[i], pgm.data[j] = pgm.data[j], pgm.data[i]
     }
+}
+
+func (pgm *PGM) SetMagicNumber(magicNumber string){
+	pgm.magicNumber = magicNumber
 }
 
 func (pgm *PGM) SetMaxValue(maxValue uint8){
@@ -182,29 +186,21 @@ func (pgm *PGM) Rotate90CW(){
 }
 
 
+// func main() {
+//     pgm, _ := ReadPGM("testImages/pgm/testP2.pgm")
+//     // (*PBM).Size(&PBM{})
+//     pgm.Save("testImagees/pgm/save.pgm")
+// 	fmt.Println("\n")
 
-// func (pgm *PGM) SetMagicNumber(magicNumber string){
-// 	fmt.Println(magicNumber)
+// 	// pgm.SetMagicNumber("P5")
+// 	pgm.Flip()
+// 	fmt.Println("Flip:", pgm.data)
+// 	fmt.Println("\n")
+
+// 	pgm.Flop()
+// 	fmt.Println("Flop:", pgm.data)
+// 	fmt.Println("\n")
+
+// 	pgm.Rotate90CW()
+// 	fmt.Println("Rotate:", pgm.data)
 // }
-
-
-
-
-func main() {
-    pgm, _ := ReadPGM("Dos_pgm/test.pgm")
-    // (*PBM).Size(&PBM{})
-    pgm.Save("Dos_pgm/save.pgm")
-	fmt.Println("\n")
-
-	// pgm.SetMagicNumber("P5")
-	pgm.Flip()
-	fmt.Println("Flip:", pgm.data)
-	fmt.Println("\n")
-
-	pgm.Flop()
-	fmt.Println("Flop:", pgm.data)
-	fmt.Println("\n")
-
-	pgm.Rotate90CW()
-	fmt.Println("Rotate:", pgm.data)
-}
