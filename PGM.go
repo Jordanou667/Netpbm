@@ -1,11 +1,13 @@
 package Netpbm
 
 import (
-    "bufio"
-    "fmt"
-    "os"
-    "strconv"
-    "strings"
+	"bufio"
+	"fmt"
+	"math"
+	"os"
+	"strconv"
+	"strings"
+    "io"
 )
 
 type PGM struct {
@@ -49,31 +51,67 @@ func ReadPGM(filename string) (*PGM, error) {
     maxValue, _ := strconv.Atoi(scanner.Text())
 
     // Lecture des données binaires
-    data := make([][]uint8, height)
-	for i := range data {
-		data[i] = make([]uint8, width)
-	}
+    var pgm *PGM
 
-    for i := 0; i < height; i++ {
-		scanner.Scan()
-		line := scanner.Text()
-		hori := strings.Fields(line)
-		for j := 0; j < width; j++ {
-			pixel, _ := strconv.Atoi(hori[j])
-			data[i][j] = uint8(pixel)
+    // if magicNumber == "P2" {
+    //     data := make([][]uint8, height)
+    //     for i := range data {
+    //         data[i] = make([]uint8, width)
+    //     }
+
+    //     for i := 0; i < height; i++ {
+    //         scanner.Scan()
+    //         line := scanner.Text()
+    //         hori := strings.Fields(line)
+    //         for j := 0; j < width; j++ {
+    //             pixel, _ := strconv.Atoi(hori[j])
+    //             data[i][j] = uint8(pixel)
+    //         }
+    //     }
+
+    //     pgm = &PGM{
+    //         data:        data,
+    //         width:       width,
+    //         height:      height,
+    //         magicNumber: magicNumber,
+    //         max:         maxValue,
+    //     }
+    //     fmt.Printf("%+v\n", PGM{data, width, height, magicNumber, maxValue})
+    
+    if magicNumber == "P5" {
+        // Read the format P5 (binary)
+        data := make([][]uint8, height)
+        for i := range data {
+            data[i] = make([]uint8, width)
         }
+    
+        for y := 0; y < height; y++ {
+            row := make([]byte, width)
+            n, err := file.Read(row)
+            if err != nil {
+                if err == io.EOF {
+                    return nil, fmt.Errorf("unexpected end of file at line %d", y)
+                }
+                return nil, fmt.Errorf("error reading pixel data at line %d: %v", y, err)
+            }
+            if n < width {
+                return nil, fmt.Errorf("unexpected end of file at line %d, expected %d bytes, got %d", y, width, n)
+            }
+    
+            for x := 0; x < width; x++ {
+                data[y][x] = uint8(row[x])
+            }
+        }
+    
+        pgm = &PGM{
+            data:        data,
+            width:       width,
+            height:      height,
+            magicNumber: magicNumber,
+            max:         maxValue,
+        }
+        fmt.Printf("%+v\n", *pgm)
     }
-
-    pgm := &PGM{
-        data:        data,
-        width:       width,
-        height:      height,
-        magicNumber: magicNumber,
-        max:         maxValue,
-    }
-
-    fmt.Printf("%+v\n", PGM{data, width, height, magicNumber, maxValue})
-
     return pgm, nil
 }
 
@@ -90,41 +128,34 @@ func (pgm *PGM) Set(x, y int, value uint8){
 	pgm.data[y][x] = value
 }
 
+
 func (pgm *PGM) Save(filename string) error {
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+    fileSave, error := os.Create(filename)
+    if error != nil {
+        return error
+    }
+    defer fileSave.Close()
 
-	_, err = fmt.Fprintf(file, "magicNumber: %s\n", pgm.magicNumber)
-	if err != nil {
-		return err
-	}
+    fmt.Fprintf(fileSave, "%s\n%d %d\n%d\n", pgm.magicNumber, pgm.width, pgm.height, pgm.max)
 
-	_, err = fmt.Fprintf(file, "Width: %d\n", pgm.width)
-	if err != nil {
-		return err
-	}
-	_, err = fmt.Fprintf(file, "Height: %d\n", pgm.height)
-	if err != nil {
-		return err
-	}
+    // if pgm.magicNumber == "P2" {
+    //     for i := 0; i < pgm.height; i++ {
+    //         for j := 0; j < pgm.width; j++ {
+    //             fmt.Fprintf(fileSave, "%v ", pgm.data[i][j])
+    //         }
+    //         fmt.Fprintf(fileSave, "\n")
+    //     }
+    //     fmt.Fprintln(fileSave)
 
-	_, err = fmt.Fprintf(file, "Max: %d\n", pgm.max)
-	if err != nil {
-		return err
-	}
-
-	fmt.Fprintf(file, "\n")
-
-	for i := 0; i < pgm.height; i++ {
-		for j := 0; j < pgm.width; j++ {
-			fmt.Fprintf(file, "%v ", pgm.data[i][j])
-		}
-		fmt.Fprintf(file, "\n")
-	}
-	return nil
+    if pgm.magicNumber == "P5" {
+        // Save binary data for P5 format
+        for y := 0; y < pgm.height; y++ {
+            for x := 0; x < pgm.width; x++ {
+                fmt.Fprintf(fileSave, "%c", pgm.data[y][x])
+            }
+        }
+    }
+    return nil
 }
 
 func (pgm *PGM) Invert() {
@@ -139,7 +170,7 @@ func (pgm *PGM) Invert() {
     }
 }
 
-func (pgm *PGM) Flop() {
+func (pgm *PGM) Flip() {
     for _, height := range pgm.data {
         for i, j := 0, len(height)-1; i < j; i, j = i+1, j-1 {
             height[i], height[j] = height[j], height[i]
@@ -147,7 +178,7 @@ func (pgm *PGM) Flop() {
     }
 }
 
-func (pgm *PGM) Flip(){
+func (pgm *PGM) Flop(){
     for i, j := 0, len(pgm.data)-1; i < j; i, j = i+1, j-1 {
         pgm.data[i], pgm.data[j] = pgm.data[j], pgm.data[i]
     }
@@ -159,14 +190,11 @@ func (pgm *PGM) SetMagicNumber(magicNumber string){
 
 func (pgm *PGM) SetMaxValue(maxValue uint8){
 	pgm.max = int(maxValue)
-	for i := 0; i < pgm.height; i++ {
-		for j := 0; j < pgm.width; j++{
-			if pgm.data[i][j] > maxValue {
-				pgm.data[i][j] = maxValue
-			}
+	for i := range pgm.data {
+		for j := range pgm.data[i] {
+			pgm.data[i][j] = uint8(math.Round(float64(pgm.data[i][j]) / float64(pgm.max) * 255))
 		}
 	}
-
 }
 
 func (pgm *PGM) Rotate90CW(){
@@ -187,19 +215,19 @@ func (pgm *PGM) Rotate90CW(){
 
 
 // func main() {
-//     pgm, _ := ReadPGM("testImages/pgm/testP2.pgm")
+//     pgm, _ := ReadPGM("testImages/pgm/testP5.pgm")
 //     // (*PBM).Size(&PBM{})
-//     pgm.Save("testImagees/pgm/save.pgm")
-// 	fmt.Println("\n")
+//     pgm.Save("testImagees/pgm/testp5a.pgm")
+// 	// fmt.Println("\n")
 
 // 	// pgm.SetMagicNumber("P5")
 // 	pgm.Flip()
 // 	fmt.Println("Flip:", pgm.data)
-// 	fmt.Println("\n")
+// 	// fmt.Println("\n")
 
 // 	pgm.Flop()
 // 	fmt.Println("Flop:", pgm.data)
-// 	fmt.Println("\n")
+// 	// fmt.Println("\n")
 
 // 	pgm.Rotate90CW()
 // 	fmt.Println("Rotate:", pgm.data)

@@ -108,7 +108,7 @@ func TestReadPBM(t *testing.T) {
 		}
 	}
 
-	// read the image with P4 magic number
+	//read the image with P4 magic number
 	// pbm, err = ReadPBM("./testImages/pbm/testP4.pbm")
 	// if err != nil {
 	// 	t.Error(err)
@@ -124,7 +124,7 @@ func TestReadPBM(t *testing.T) {
 	// 	t.Error("Wrong height")
 	// }
 
-	// compare the data
+	// //compare the data
 	// for i := 0; i < imageWidth*imageHeight; i++ {
 	// 	var x int = i % imageWidth
 	// 	var y int = i / imageWidth
@@ -214,7 +214,7 @@ func TestSave(t *testing.T) {
 	// if pbm2.height != 15 {
 	// 	t.Error("Wrong height")
 	// }
-	// // compare the data
+	// //compare the data
 	// for i := 0; i < imageWidth*imageHeight; i++ {
 	// 	var x int = i % imageWidth
 	// 	var y int = i / imageWidth

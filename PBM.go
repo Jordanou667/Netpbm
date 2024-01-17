@@ -48,33 +48,74 @@ func ReadPBM(filename string) (*PBM, error) {
     width, _  := strconv.Atoi(res[1])
 	
 	// Lecture des données binaires
-	data := make([][]bool, height)
-	for i := range data {
-		data[i] = make([]bool, width)
-	}
+	var pbm *PBM
 
-	for i := 0; i < height; i++ {
-		scanner.Scan()
-		line := scanner.Text()
-		hori := strings.Fields(line)
-		for j := 0; j < width; j++ {
-			verti, _ := strconv.Atoi(hori[j])
-			if verti == 1 {
-				data[i][j] = true
+	if magicNumber == "P1" {
+		data := make([][]bool, height)
+		for i := range data {
+			data[i] = make([]bool, width)
+		}
+
+		for i := 0; i < height; i++ {
+			scanner.Scan()
+			line := scanner.Text()
+			hori := strings.Fields(line)
+			for j := 0; j < width; j++ {
+				verti, _ := strconv.Atoi(hori[j])
+				if verti == 1 {
+					data[i][j] = true
+				}
 			}
 		}
-	}
+		
+		pbm = &PBM{
+			data:        data,
+			width:       width,
+			height:      height,
+			magicNumber: magicNumber,
+		}
+		fmt.Printf("%+v\n", PBM{data, width, height, magicNumber})
 
-	pbm := &PBM{
-        data:        data,
-        width:       width,
-        height:      height,
-        magicNumber: magicNumber,
-	}
+	// } else if magicNumber == "P4" {
+	// 	// Lire le format P4 (binaire)
+	// 	expectedBytesPerRow := (width + 7) / 8
+	// 	data := make([][]bool, height)
+	// 	for i := range data {
+	// 		data[i] = make([]bool, width)
+	// 	}
+		
+	// 	for y := 0; y < height; y++ {
+	// 		row := make([]byte, expectedBytesPerRow)
+	// 		n, err := file.Read(row)
+	// 		if err != nil {
+	// 			if err == io.EOF {
+	// 				return nil, fmt.Errorf("unexpected end of file at line %d", y)
+	// 			}
+	// 			return nil, fmt.Errorf("error reading pixel data at line %d: %v", y, err)
+	// 		}
+	// 		if n < expectedBytesPerRow {
+	// 			return nil, fmt.Errorf("unexpected end of file at line %d, expected %d bytes, got %d", y, expectedBytesPerRow, n)
+	// 		}
+		
+	// 		for x := 0; x < width; x++ {
+	// 			byteIndex := x / 8
+	// 			bitIndex := 7 - (x % 8)
 	
-
-	fmt.Printf("%+v\n", PBM{data, width, height, magicNumber})
-
+	// 			// Extract the bit from the byte
+	// 			bitValue := (int(row[byteIndex]) >> bitIndex) & 1
+	
+	// 			data[y][x] = bitValue != 0
+	// 		}
+	// 	}
+	
+	// 	pbm = &PBM{
+	// 		data:        data,
+	// 		width:       width,
+	// 		height:      height,
+	// 		magicNumber: magicNumber,
+	// 	}
+	// 	fmt.Printf("%+v\n", *pbm)
+	}
 	return pbm, nil
 }
 
@@ -91,43 +132,58 @@ func (pbm *PBM) Set(x, y int, value bool) {
 }
 
 func (pbm *PBM) Save(filename string) error {
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+    fileSave, error := os.Create(filename)
+    if error != nil {
+        return error
+    }
+	defer fileSave.Close()
+	
+    fmt.Fprintf(fileSave, "%s\n%d %d\n", pbm.magicNumber, pbm.width, pbm.height)
 
-	_, err = fmt.Fprintf(file, "magicNumber: %s\n", pbm.magicNumber)
-	if err != nil {
-		return err
-	}
-
-	_, err = fmt.Fprintf(file, "Width: %d\n", pbm.width)
-	if err != nil {
-		return err
-	}
-	_, err = fmt.Fprintf(file, "Height: %d\n", pbm.height)
-	if err != nil {
-		return err
-	}
-
-	if pbm.magicNumber != "P1" {
-		return fmt.Errorf("Not a Portable Bitmap file: bad magic number %s", pbm.magicNumber)
-	}
-
-	for i := 0; i < pbm.height; i++ {
-		for j := 0; j < pbm.width; j++ {
-			if pbm.data[i][j] {
-				fmt.Fprintf(file, "%s ", "1")
-			}else if !pbm.data[i][j] {
-				fmt.Fprintf(file, "%s ", "0")
+	if pbm.magicNumber == "P1" {
+		for _, i := range pbm.data {
+			for _, j := range i {
+				if j {
+					fmt.Fprint(fileSave, "1 ")
+				} else {
+					fmt.Fprint(fileSave, "0 ")
+				}
 			}
+			fmt.Fprintln(fileSave)
 		}
-		fmt.Fprintf(file, "%v\n", "")
-	}
-	return nil
+	// } else if pbm.magicNumber == "P4" {
+	// 	// Écrire le format P4 (binaire)
+	// 	for y := 0; y < pbm.height; y++ {
+	// 		var currentByte byte
+	// 		for x := 0; x < pbm.width; x++ {
+	// 			bitIndex := 7 - (x % 8)
+	// 			bitValue := 0
+	// 			if pbm.data[y][x] {
+	// 				bitValue = 1
+	// 			}
+	// 			// Mettre à jour le bit approprié dans l'octet
+	// 			currentByte |= byte(bitValue << bitIndex)
+	
+	// 			if (x+1)%8 == 0 || x == pbm.width-1 {
+	// 				_, err := fileSave.Write([]byte{currentByte})
+	// 				if err != nil {
+	// 					return fmt.Errorf("erreur d'écriture des données binaires à la ligne %d : %v", y, err)
+	// 				}
+	// 				currentByte = 0
+	// 			}
+	// 		}
+	// 	}
+	}	
+    return nil
 }
 
+func (pbm *PBM) Flip() {
+    for _, height := range pbm.data {
+        for i, j := 0, len(height)-1; i < j; i, j = i+1, j-1 {
+            height[i], height[j] = height[j], height[i]
+        }
+    }
+}
 
 func (pbm *PBM) Invert(){
 	for i := 0; i < pbm.height; i++ {
@@ -141,15 +197,8 @@ func (pbm *PBM) Invert(){
 	}
 }
 
-func (pbm *PBM) Flop() {
-    for _, height := range pbm.data {
-        for i, j := 0, len(height)-1; i < j; i, j = i+1, j-1 {
-            height[i], height[j] = height[j], height[i]
-        }
-    }
-}
 
-func (pbm *PBM) Flip(){
+func (pbm *PBM) Flop(){
     for i, j := 0, len(pbm.data)-1; i < j; i, j = i+1, j-1 {
         pbm.data[i], pbm.data[j] = pbm.data[j], pbm.data[i]
     }

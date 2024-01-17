@@ -111,7 +111,7 @@ func TestReadPGM(t *testing.T) {
 			t.Errorf("Pixel at (%d, %d) not read correctly", x, y)
 		}
 	}
-	// pgm, err = ReadPGM("./testImages/pgm/testP5.pgm")
+	pgm, err = ReadPGM("./testImages/pgm/testP5.pgm")
 }
 
 func TestSizePGM(t *testing.T) {
@@ -179,35 +179,35 @@ func TestSavePGM(t *testing.T) {
 			t.Errorf("Pixel at (%d, %d) not read correctly", x, y)
 		}
 	}
-	// pgm, err = ReadPGM("./testImages/pgm/testP5.pgm")
-	// if err != nil {
-	// 	t.Error(err)
-	// }
-	// pgm.SetMagicNumber("P5")
-	// pgm.Save("./testImages/pgm/testP5a.pgm")
-	// pgm, err = ReadPGM("./testImages/pgm/testP5a.pgm")
-	// if err != nil {
-	// 	t.Error(err)
-	// }
-	// if pgm.magicNumber != "P5" {
-	// 	t.Error("Magic number not read correctly")
-	// }
-	// if pgm.width != imagePGMWidth {
-	// 	t.Error("Width not read correctly")
-	// }
-	// if pgm.height != imagePGMHeight {
-	// 	t.Error("Height not read correctly")
-	// }
-	// if pgm.max != imagePGMMax {
-	// 	t.Error("Max value not read correctly")
-	// }
-	// for i := 0; i < imageWidth*imageHeight; i++ {
-	// 	x := i % imageWidth
-	// 	y := i / imageWidth
-	// 	if pgm.data[y][x] != uint8(testData[i]) {
-	// 		t.Errorf("Pixel at (%d, %d) not read correctly", x, y)
-	// 	}
-	// }
+	pgm, err = ReadPGM("./testImages/pgm/testP5.pgm")
+	if err != nil {
+		t.Error(err)
+	}
+	pgm.SetMagicNumber("P5")
+	pgm.Save("./testImages/pgm/testP5a.pgm")
+	pgm, err = ReadPGM("./testImages/pgm/testP5a.pgm")
+	if err != nil {
+		t.Error(err)
+	}
+	if pgm.magicNumber != "P5" {
+		t.Error("Magic number not read correctly")
+	}
+	if pgm.width != imagePGMWidth {
+		t.Error("Width not read correctly")
+	}
+	if pgm.height != imagePGMHeight {
+		t.Error("Height not read correctly")
+	}
+	if pgm.max != imagePGMMax {
+		t.Error("Max value not read correctly")
+	}
+	for i := 0; i < imageWidth*imageHeight; i++ {
+		x := i % imageWidth
+		y := i / imageWidth
+		if pgm.data[y][x] != uint8(testData[i]) {
+			t.Errorf("Pixel at (%d, %d) not read correctly", x, y)
+		}
+	}
 }
 
 func TestInvertPGM(t *testing.T) {
