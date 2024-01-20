@@ -7,14 +7,14 @@ import (
 	"os"
 	"strconv"
 	"strings"
-    "io"
+    // "io"
 )
 
 type PGM struct {
 	data        [][]uint8
 	width, height int
 	magicNumber  string
-	max          int
+	max          uint8
 }
 
 func ReadPGM(filename string) (*PGM, error) {
@@ -53,22 +53,56 @@ func ReadPGM(filename string) (*PGM, error) {
     // Lecture des données binaires
     var pgm *PGM
 
-    // if magicNumber == "P2" {
+    if magicNumber == "P2" {
+        data := make([][]uint8, height)
+        for i := range data {
+            data[i] = make([]uint8, width)
+        }
+
+        for i := 0; i < height; i++ {
+            scanner.Scan()
+            line := scanner.Text()
+            hori := strings.Fields(line)
+            for j := 0; j < width; j++ {
+                pixel, _ := strconv.Atoi(hori[j])
+                data[i][j] = uint8(pixel)
+            }
+        }
+
+        pgm = &PGM{
+            data:        data,
+            width:       width,
+            height:      height,
+            magicNumber: magicNumber,
+            max:         uint8(maxValue),
+        }
+        fmt.Printf("%+v\n", PGM{data, width, height, magicNumber, uint8(maxValue)})
+    
+    // if magicNumber == "P5" {
+    //     // Read the format P5 (binary)
     //     data := make([][]uint8, height)
     //     for i := range data {
     //         data[i] = make([]uint8, width)
     //     }
-
-    //     for i := 0; i < height; i++ {
-    //         scanner.Scan()
-    //         line := scanner.Text()
-    //         hori := strings.Fields(line)
-    //         for j := 0; j < width; j++ {
-    //             pixel, _ := strconv.Atoi(hori[j])
-    //             data[i][j] = uint8(pixel)
+    
+    //     for y := 0; y < height; y++ {
+    //         row := make([]byte, width)
+    //         n, err := file.Read(row)
+    //         if err != nil {
+    //             if err == io.EOF {
+    //                 return nil, fmt.Errorf("unexpected end of file at line %d", y)
+    //             }
+    //             return nil, fmt.Errorf("error reading pixel data at line %d: %v", y, err)
+    //         }
+    //         if n < width {
+    //             return nil, fmt.Errorf("unexpected end of file at line %d, expected %d bytes, got %d", y, width, n)
+    //         }
+    
+    //         for x := 0; x < width; x++ {
+    //             data[y][x] = uint8(row[x])
     //         }
     //     }
-
+    
     //     pgm = &PGM{
     //         data:        data,
     //         width:       width,
@@ -76,41 +110,7 @@ func ReadPGM(filename string) (*PGM, error) {
     //         magicNumber: magicNumber,
     //         max:         maxValue,
     //     }
-    //     fmt.Printf("%+v\n", PGM{data, width, height, magicNumber, maxValue})
-    
-    if magicNumber == "P5" {
-        // Read the format P5 (binary)
-        data := make([][]uint8, height)
-        for i := range data {
-            data[i] = make([]uint8, width)
-        }
-    
-        for y := 0; y < height; y++ {
-            row := make([]byte, width)
-            n, err := file.Read(row)
-            if err != nil {
-                if err == io.EOF {
-                    return nil, fmt.Errorf("unexpected end of file at line %d", y)
-                }
-                return nil, fmt.Errorf("error reading pixel data at line %d: %v", y, err)
-            }
-            if n < width {
-                return nil, fmt.Errorf("unexpected end of file at line %d, expected %d bytes, got %d", y, width, n)
-            }
-    
-            for x := 0; x < width; x++ {
-                data[y][x] = uint8(row[x])
-            }
-        }
-    
-        pgm = &PGM{
-            data:        data,
-            width:       width,
-            height:      height,
-            magicNumber: magicNumber,
-            max:         maxValue,
-        }
-        fmt.Printf("%+v\n", *pgm)
+    //     fmt.Printf("%+v\n", *pgm)
     }
     return pgm, nil
 }
@@ -138,22 +138,22 @@ func (pgm *PGM) Save(filename string) error {
 
     fmt.Fprintf(fileSave, "%s\n%d %d\n%d\n", pgm.magicNumber, pgm.width, pgm.height, pgm.max)
 
-    // if pgm.magicNumber == "P2" {
-    //     for i := 0; i < pgm.height; i++ {
-    //         for j := 0; j < pgm.width; j++ {
-    //             fmt.Fprintf(fileSave, "%v ", pgm.data[i][j])
-    //         }
-    //         fmt.Fprintf(fileSave, "\n")
-    //     }
-    //     fmt.Fprintln(fileSave)
-
-    if pgm.magicNumber == "P5" {
-        // Save binary data for P5 format
-        for y := 0; y < pgm.height; y++ {
-            for x := 0; x < pgm.width; x++ {
-                fmt.Fprintf(fileSave, "%c", pgm.data[y][x])
+    if pgm.magicNumber == "P2" {
+        for i := 0; i < pgm.height; i++ {
+            for j := 0; j < pgm.width; j++ {
+                fmt.Fprintf(fileSave, "%v ", pgm.data[i][j])
             }
+            fmt.Fprintf(fileSave, "\n")
         }
+        fmt.Fprintln(fileSave)
+
+    // if pgm.magicNumber == "P5" {
+    //     // Save binary data for P5 format
+    //     for y := 0; y < pgm.height; y++ {
+    //         for x := 0; x < pgm.width; x++ {
+    //             fmt.Fprintf(fileSave, "%c", pgm.data[y][x])
+    //         }
+    //     }
     }
     return nil
 }
@@ -189,7 +189,7 @@ func (pgm *PGM) SetMagicNumber(magicNumber string){
 }
 
 func (pgm *PGM) SetMaxValue(maxValue uint8){
-	pgm.max = int(maxValue)
+	pgm.max = uint8(maxValue)
 	for i := range pgm.data {
 		for j := range pgm.data[i] {
 			pgm.data[i][j] = uint8(math.Round(float64(pgm.data[i][j]) / float64(pgm.max) * 255))
@@ -213,6 +213,30 @@ func (pgm *PGM) Rotate90CW(){
 	pgm.height, pgm.width = pgm.width, pgm.height
 }
 
+func (pgm *PGM) ToPBM() *PBM {
+    var data [][]bool
+    data = make([][]bool, pgm.height)
+    for i := 0; i < pgm.width; i++ {
+        data[i] = make([]bool, pgm.width)
+    }
+
+    for i := 0; i < pgm.height; i++ {
+        for j := 0; j < pgm.width; j++ {
+            if pgm.data[i][j] > pgm.max/2 {
+                data[i][j] = true
+            } else {
+                data[i][j] = false
+            }
+        }
+    }
+
+    return &PBM{
+        data:        data,
+        width:       pgm.width,
+        height:      pgm.height,
+        magicNumber: "P1",
+    }
+}
 
 // func main() {
 //     pgm, _ := ReadPGM("testImages/pgm/testP5.pgm")
