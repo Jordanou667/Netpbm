@@ -439,33 +439,33 @@ func (ppm *PPM) DrawRectangle(p1 Point, width, height int, color Pixel) {
     }
 }
 
-// func (ppm *PPM) DrawFilledRectangle(p1 Point, width, height int, color Pixel) {
-//     ppm.DrawRectangle(p1, width, height, color)
+func (ppm *PPM) DrawFilledRectangle(p1 Point, width, height int, color Pixel) {
+    ppm.DrawRectangle(p1, width, height, color)
 
-//     for i := 0; i < ppm.height; i++ {
-//         var positions []int
-//         var number_points int
-//         for j := 0; j < ppm.width; j++ {
-//             if ppm.data[i][j] == color {
-//                 number_points += 1
-//                 positions = append(positions, j)
-//             }
-//         }
-//         if number_points > 1 {
-//             for k := positions[0] + 1; k < positions[len(positions)-1]; k++ {
-//                 ppm.data[i][k] = color
+    for i := 0; i < ppm.height; i++ {
+        var positions []int
+        var number_points int
+        for j := 0; j < ppm.width; j++ {
+            if ppm.data[i][j] == color {
+                number_points += 1
+                positions = append(positions, j)
+            }
+        }
+        if number_points > 1 {
+            for k := positions[0] + 1; k < positions[len(positions)-1]; k++ {
+                ppm.data[i][k] = color
 
-//             }
-//         }
-//         if height > ppm.height && width > ppm.width {
-//             for k := 0; k < ppm.width; k++ {
-//                 ppm.data[i][k] = color
+            }
+        }
+        if height > ppm.height && width > ppm.width {
+            for k := 0; k < ppm.width; k++ {
+                ppm.data[i][k] = color
 
-//             }
+            }
 
-//         }
-//     }
-// }
+        }
+    }
+}
 
 // DrawPolygon draws a polygon.
 func (ppm *PPM) DrawPolygon(points []Point, color Pixel) {
@@ -503,58 +503,3 @@ func (ppm *PPM) DrawFilledPolygon(points []Point, color Pixel) {
         }
     }
 }
-
-// DrawKochSnowflake draws a Koch snowflake.
-// func (ppm *PPM) DrawKochSnowflake(n int, start Point, width int, color Pixel) {
-//     // Calculate the length of each side based on the width
-//     sideLength := width * int(math.Pow(3, float64(n-1)))
-
-//     // Calculate the vertices of the equilateral triangle
-//     p1 := start
-//     p2 := Point{start.X + sideLength, start.Y}
-//     angle := math.Pi / 3.0
-//     p3 := Point{
-//         X: int(float64(start.X) + float64(sideLength)*math.Cos(angle)),
-//         Y: int(float64(start.Y) - float64(sideLength)*math.Sin(angle)),
-//     }
-
-//     // Draw the three sides of the Koch snowflake
-//     drawKochCurve(ppm, n, p1, p2, color)
-//     drawKochCurve(ppm, n, p2, p3, color)
-//     drawKochCurve(ppm, n, p3, p1, color)
-// }
-
-// // Helper function to draw a Koch curve
-// func drawKochCurve(ppm *PPM, n int, p1, p2 Point, color Pixel) {
-//     if n == 0 {
-//         // Base case: draw a line
-//         ppm.DrawLine(p1, p2, color)
-//     } else {
-//         // Recursive case: divide the line into three segments
-//         dx := p2.X - p1.X
-//         dy := p2.Y - p1.Y
-
-//         // Calculate the four intermediate points
-//         p3 := Point{p1.X + dx/3, p1.Y + dy/3}
-//         p4 := Point{
-//             X: int(float64(p1.X+2*dx/3) + float64(dy)*math.Sqrt(3)/6),
-//             Y: int(float64(p1.Y+2*dy/3) - float64(dx)*math.Sqrt(3)/6),
-//         }
-//         p5 := Point{p1.X + 2*dx/3, p1.Y + 2*dy/3}
-
-//         // Recursively draw the four segments
-//         drawKochCurve(ppm, n-1, p1, p3, color)
-//         drawKochCurve(ppm, n-1, p3, p4, color)
-//         drawKochCurve(ppm, n-1, p4, p5, color)
-//         drawKochCurve(ppm, n-1, p5, p2, color)
-//     }
-// }
-
-
-// func main() {
-//     ppm, _ := ReadPPM("testImages/ppm/blank.ppm")
-//     // (*PBM).Size(&PBM{})
-//     start := Point{X: 100, Y: 100}
-//     ppm.DrawKochSnowflake(3, start, 5, Pixel{255, 255, 255})
-//     ppm.Save("testImages/ppm/blou.ppm")
-// }
